@@ -65,6 +65,22 @@ function clearItems() {
     checkUI();
 }
 
+// Filters items
+function filterItems(e) {
+    const items = itemList.querySelectorAll("li");
+    const text = e.target.value.toLowerCase();
+    
+    // Iterating over NodeList
+    items.forEach(item => {
+        const itemName = item.firstChild.textContent.toLowerCase();
+        if (itemName.indexOf(text) != -1) {
+            item.style.display = "flex";
+        } else {
+            item.style.display = "none";
+        }
+    })
+}
+
 // Checks if we should display filter and clear all UI elements.
 function checkUI() {
     const items = itemList.querySelectorAll("li");
@@ -81,5 +97,6 @@ function checkUI() {
 itemForm.addEventListener("submit", addItem);
 itemList.addEventListener("click", removeItem);
 clearBtn.addEventListener("click", clearItems);
+itemFilter.addEventListener("input", filterItems);
 
 checkUI();

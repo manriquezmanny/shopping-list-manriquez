@@ -5,8 +5,14 @@ const itemList = document.querySelector("#item-list");
 const clearBtn = document.querySelector("#clear");
 const itemFilter = document.querySelector("#filter");
 
+function displayItems() {
+    const itemsFromStorage = getItemsFromStorage();
+    itemsFromStorage.forEach(item => addItemToDOM(item));
+    checkUI();
+}
+
 // Adds li to ul
-const addItem = e => {
+const addItemSubmit = e => {
     e.preventDefault();
     // Saving input value in variable.
     const newItem = itemInput.value;
@@ -15,17 +21,25 @@ const addItem = e => {
         alert("Please add an item");
         return;
     }
+
+    // Creating item DOM element
+    addItemToDOM(newItem);
+    // Adding item to local storage
+    addItemToStorage(newItem);
+
+    checkUI();
+
+    itemInput.value = "";
+}
+
+function addItemToDOM(item) {
     // Creating a list item
     const li = document.createElement("li");
-    li.appendChild(document.createTextNode(newItem));
+    li.appendChild(document.createTextNode(item));
     const button = createButton("remove-item btn-link text-red");
     li.appendChild(button);
     // Appending new li to the DOM.
     itemList.appendChild(li);
-    // Checking UI to add filter and clear UI elements back.
-    checkUI();
-    // Clearing the Item Input field.
-    itemInput.value = "";
 }
 
 // Creates Button.
@@ -44,17 +58,50 @@ function createIcon(classes) {
     return icon;
 }
 
-// Remove Item function using event Delegation.
-function removeItem(e) {
-    // if clicked element's parent has a class of "remove-item"
-    if (e.target.parentElement.classList.contains("remove-item")) {
-        // Prompting if we really want to delete?
-        if (confirm("Are you sure you want to delete?")) {
-            // Traversing DOM to get to li from icon and removing it.
-            e.target.parentElement.parentElement.remove();
-            checkUI();
-        }
+function addItemToStorage(item) {
+    const itemsFromStorage = getItemsFromStorage();
+    // Adding new item to array.
+    itemsFromStorage.push(item);
+    // Converting back to JSON string and setting to local storage.
+    localStorage.setItem("items", JSON.stringify(itemsFromStorage));
+}
+
+function getItemsFromStorage() {
+    let itemsFromStorage;
+    if (localStorage.getItem("items") === null) {
+        itemsFromStorage = [];
+    } else {
+        itemsFromStorage = JSON.parse(localStorage.getItem("items"));
     }
+
+    return itemsFromStorage;
+}
+
+function onClickItem(e) {
+    if (e.target.parentElement.classList.contains("remove-item")) {
+        removeItem(e.target.parentElement.parentElement);
+    }
+}
+
+// Remove Item function using event Delegation.
+function removeItem(item) {
+    if (confirm("Are you sure?")) {
+        // Removing item from DOM
+        item.remove();
+
+        // Remove item from storage
+        removeItemFromStorage(item.textContent);
+
+        checkUI();
+    }
+}
+
+function removeItemFromStorage(item) {
+    let itemsFromStorage = getItemsFromStorage();
+    // Filtering out item to be removed.
+    itemsFromStorage = itemsFromStorage.filter((i) => i !== item);
+    //Re setting filtered stringified array to storage.
+    localStorage.setItem("items", JSON.stringify(itemsFromStorage));
 }
 
 // Clears list items.
@@ -62,6 +109,8 @@ function clearItems() {
     while (itemList.firstChild) {
         itemList.removeChild(itemList.firstChild);
     }
+    // Clearing from local storage
+    localStorage.removeItem('items');
     checkUI();
 }
 
@@ -93,10 +142,16 @@ function checkUI() {
     }
 }
 
-// Event listeners
-itemForm.addEventListener("submit", addItem);
-itemList.addEventListener("click", removeItem);
-clearBtn.addEventListener("click", clearItems);
-itemFilter.addEventListener("input", filterItems);
+// Initialize app
+function init() {
+    // Event listeners
+    itemForm.addEventListener("submit", addItemSubmit);
+    itemList.addEventListener("click", onClickItem);
+    clearBtn.addEventListener("click", clearItems);
+    itemFilter.addEventListener("input", filterItems);
+    document.addEventListener("DOMContentLoaded", displayItems);
 
-checkUI();
+    checkUI();
+}
+
+init();

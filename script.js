@@ -3,6 +3,7 @@ const itemForm = document.querySelector("#item-form");
 const itemInput = document.querySelector("#item-input");
 const itemList = document.querySelector("#item-list");
 const clearBtn = document.querySelector("#clear");
+const itemFilter = document.querySelector("#filter");
 
 // Adds li to ul
 const addItem = e => {
@@ -21,6 +22,8 @@ const addItem = e => {
     li.appendChild(button);
     // Appending new li to the DOM.
     itemList.appendChild(li);
+    // Checking UI to add filter and clear UI elements back.
+    checkUI();
     // Clearing the Item Input field.
     itemInput.value = "";
 }
@@ -45,8 +48,12 @@ function createIcon(classes) {
 function removeItem(e) {
     // if clicked element's parent has a class of "remove-item"
     if (e.target.parentElement.classList.contains("remove-item")) {
-        // Traversing DOM to get to li from icon and removing it.
-        e.target.parentElement.parentElement.remove();
+        // Prompting if we really want to delete?
+        if (confirm("Are you sure you want to delete?")) {
+            // Traversing DOM to get to li from icon and removing it.
+            e.target.parentElement.parentElement.remove();
+            checkUI();
+        }
     }
 }
 
@@ -55,9 +62,24 @@ function clearItems() {
     while (itemList.firstChild) {
         itemList.removeChild(itemList.firstChild);
     }
+    checkUI();
+}
+
+// Checks if we should display filter and clear all UI elements.
+function checkUI() {
+    const items = itemList.querySelectorAll("li");
+    if (items.length === 0) {
+        clearBtn.style.display = "none";
+        itemFilter.style.display = "none";
+    }else{
+        clearBtn.style.display = "block";
+        itemFilter.style.display = "block";
+    }
 }
 
 // Event listeners
 itemForm.addEventListener("submit", addItem);
 itemList.addEventListener("click", removeItem);
 clearBtn.addEventListener("click", clearItems);
+
+checkUI();
